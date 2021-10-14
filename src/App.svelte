@@ -1,6 +1,5 @@
 <script>
 	import Annotator from './Annotator.svelte'
-	export let name;
 	
 </script>
 

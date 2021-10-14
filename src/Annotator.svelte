@@ -117,15 +117,15 @@
     <SidebarSentence on:delete={(e) => handleDeleteSentence(e)} {sentenceIdArray} bind:selectedSentenceId />
 
     <div class="p-3 flex-1 flex flex-col">
-        <h1 class="mb-7 text-gray-900 font-bold text-2xl">Annotator</h1>
-        <h2 class="text-gray-900 font-bold text-xl mb-3">Input Sentence</h2>
+        <h1 class="mb-7 text-gray-900 font-bold text-2xl">Annotator 🖍</h1>
+        <h2 class="text-gray-900 font-bold text-xl mb-3">📄 Input Sentence</h2>
         <div>
             <textarea class="w-full border-2 p-3" bind:value={input_text} cols="40" rows="5"></textarea>
         </div>
         <button class="self-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={handleStartAnnotation} >Start Annotation</button>
         <br>
         
-        <h2 class="text-gray-900 font-bold text-xl mb-3">Entities</h2>
+        <h2 class="text-gray-900 font-bold text-xl mb-3">📌 Entities</h2>
     
         <div class="flex gap-3 mb-3 items-end">
             <div class="flex flex-col">
@@ -148,7 +148,7 @@
                 {/each}
             </p>
         </div>
-        <h2 class="text-gray-900 font-bold text-xl mb-3">Annotate Sentence</h2>
+        <h2 class="text-gray-900 font-bold text-xl mb-3">📝 Annotate Sentence</h2>
         <div class="wrapper-annotator border-2 mb-3 p-3">
         {#if ready}
             <p class="sentence leading-10">

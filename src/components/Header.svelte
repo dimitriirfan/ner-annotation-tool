@@ -15,7 +15,7 @@
             <FontAwesomeIcon icon={faBars} size="lg" />
         </div>
         <div class="">
-            <h1 class="text-2xl font-bold">Word By Word Annotation</h1>
+            <h1 class="text-2xl font-bold">🎯 Word By Word Annotator</h1>
         </div>
     </div>
 </div>
