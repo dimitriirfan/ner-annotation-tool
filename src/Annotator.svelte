@@ -53,6 +53,7 @@
         sentenceIdArray.push(currentSentenceId)
         currentSentenceId += 1
         sentenceIdArray=sentenceIdArray
+        input_text = ""
     }
 
     const handleEntityClick = (i) => {
