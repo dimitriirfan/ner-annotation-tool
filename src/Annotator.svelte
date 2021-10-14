@@ -162,7 +162,7 @@
                     {#if selectedIndex == i && showEntityDropdown}
                         <div  class="annotation-entity-dropdown rounded border-2 bg-white z-10">
                             {#each Object.entries(entities) as [_, entity]}
-                                <div on:click={() => handleSelectEntity(i, selectedSentenceId, entity.class)} class="text-gray-900 px-1 font-normal hover:bg-gray-100 bg-white">{entity.class}</div>
+                                <div on:click={() => handleSelectEntity(i, entity.class)} class="text-gray-900 px-1 font-normal hover:bg-gray-100 bg-white">{entity.class}</div>
                             {/each}
                         </div>
                     {/if}
