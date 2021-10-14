@@ -1,11 +1,14 @@
 <script>
+    import SavedSentence from './components/SavedSentence.svelte'
     let ready=false
+    let currentSentence = 0
+    let selectedSentence = 0
 
     let input_text = ""
 
     let data = {
         classes: ["UNSET"],
-        words:[{ word: "", class: "UNSET" }]
+        words:[{ sentenceNum: 0, word: "", class: "UNSET" }]
     }
     let showEntityDropdown = false
 
@@ -24,13 +27,24 @@
 
     const handleStartAnnotation = () => {
         const word_list = input_text.split(" ")
+        let tempData
+        if (currentSentence !== 0) {
+            tempData=[...data.words]
+        }
         data = {
             classes: ["UNSET"],
-            words: word_list.map(word => {
-                return { word: word, class: "UNSET" }
+            words: word_list.map((word) => {
+                return { sentenceNum: currentSentence, word: word, class: "UNSET" }
             }),
         }
+        if (currentSentence !== 0) {
+            data.words = tempData.concat(data.words)
+        }
+        data = data 
         ready = true
+        selectedSentence = currentSentence
+        currentSentence += 1
+        console.log(data)
     }
 
     const handleEntityClick = (i) => {
@@ -65,12 +79,11 @@
     const handleShowEntity = () => {
         showEntityDropdown = !showEntityDropdown 
     } 
-    const handleSelectEntity = (i, newClass) => {
-        data.words[i].class = newClass
+    const handleSelectEntity = (i, sentence, newClass) => {
+        data.words.filter((item)=> item.sentenceNum === sentence)[i].class = newClass
         data = data
     }
     const handleResetState = () => {
-        console.log("Test")
         showEntityDropdown = false
     }
 
@@ -78,61 +91,77 @@
 
 <svelte:window on:click={handleResetState}/>
 
-<div>
-    <textarea bind:value={input_text} cols="40" rows="5"></textarea>
-	<button on:click={handleStartAnnotation} >Start Annotation</button>
-	<br>
-
-    <div classes="mb-3">
-        <label for="">New Entity Class</label>
-        <input type="text" bind:value={newEntityClass}> <br>
-        <label for="">Color</label>
-        <input type="text" bind:value={newEntityColor}>
-        <button on:click={handleAddNewEntity}>Add</button>
-    </div>
-
-	<div class="h-16 min-h-full border-2 mb-3 p-3">
-		<p class="sentence">
-			{#each Object.entries(entities) as [_, entity]}
-                <span class="word-text px-1 py-2 mx-3" style="color: {entity.color}">{entity.class}</span>
-			{/each}
-		</p>
-	</div>
-	<div class="wrapper-annotator border-2 mb-3 p-3">
-	{#if ready}
-		<p class="sentence leading-10">
-			{#each data.words as word, i}
-            <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2" class:entity={word.class !== "UNSET"} style="background-color: {entities[word.class].color}" >
-				<span on:click={() => handleEntityClick(i)}>{word.word + " "}</span>
-                {#if word.class !== "UNSET"}
-                    <span class="text-xs font-normal">
-                        | {word.class}
-                    </span>
-                    <div on:click|stopPropagation={() => handleDeleteEntity(i)} class="annotation-close">
-                        x
-                    </div>
-                {/if}
-                {#if selectedIndex == i && showEntityDropdown}
-                    <div  class="annotation-entity-dropdown rounded border-2 bg-white z-10">
-                        {#each Object.entries(entities) as [_, entity]}
-                            <div on:click={() => handleSelectEntity(i, entity.class)} class="text-gray-900 px-1 font-normal hover:bg-gray-200 bg-white">{entity.class}</div>
-                        {/each}
-                    </div>
-                {/if}
+<div class="flex">
+    <div class="flex w-48 flex-col">
+        <h1 class="mb-7 text-gray-900 font-bold text-xl">Senteces</h1>
+        <div>
+            {#each Array(currentSentence) as _, i }
+                <div class="cursor-pointer" on:click={() => { selectedSentence = i }} >Sentence {i}</div>
                 
-            </span>
-           
-			{/each}
-		</p>
-	{/if}
-
-	</div>
-    <div class="mb-3">
-        <label for="">Update Text</label>
-        <input type="text" bind:value={selectedEntity.word}>
+            {/each}
+        </div>
     </div>
-	<button>Reset</button>
-	<button on:click={handleExportData}>Export</button>
+    <div class="flex-1">
+        <h1 class="mb-7 text-gray-900 font-bold text-xl">Annotator</h1>
+        <div>
+            <textarea bind:value={input_text} cols="40" rows="5"></textarea>
+        </div>
+        <button on:click={handleStartAnnotation} >Start Annotation</button>
+        <br>
+    
+        <div class="mb-3">
+            <label for="">New Entity Class</label>
+            <input type="text" bind:value={newEntityClass}> <br>
+            <label for="">Color</label>
+            <input type="text" bind:value={newEntityColor}>
+            <button on:click={handleAddNewEntity}>Add</button>
+        </div>
+    
+        <div class="h-16 border-2 mb-3 p-3">
+            <p class="sentence">
+                {#each Object.entries(entities) as [_, entity]}
+                    <span class="word-text px-1 py-2 mx-3" style="color: {entity.color}">{entity.class}</span>
+                {/each}
+            </p>
+        </div>
+        <div class="wrapper-annotator border-2 mb-3 p-3">
+        {#if ready}
+            <p class="sentence leading-10">
+                {#each data.words.filter((item)=> item.sentenceNum === selectedSentence) as word, i}
+                <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2" class:entity={word.class !== "UNSET"} style="background-color: {entities[word.class].color}" >
+                    <span on:click={() => handleEntityClick(i)}>{word.word + " "}</span>
+                    {#if word.class !== "UNSET"}
+                        <span class="text-xs font-normal">
+                            | {word.class}
+                        </span>
+                        <div on:click|stopPropagation={() => handleDeleteEntity(i)} class="annotation-close">
+                            x
+                        </div>
+                    {/if}
+                    {#if selectedIndex == i && showEntityDropdown}
+                        <div  class="annotation-entity-dropdown rounded border-2 bg-white z-10">
+                            {#each Object.entries(entities) as [_, entity]}
+                                <div on:click={() => handleSelectEntity(i, selectedSentence, entity.class)} class="text-gray-900 px-1 font-normal hover:bg-gray-200 bg-white">{entity.class}</div>
+                            {/each}
+                        </div>
+                    {/if}
+                    
+                </span>
+               
+                {/each}
+            </p>
+        {/if}
+    
+        </div>
+        <div class="mb-3">
+            <label for="">Update Text</label>
+            <input type="text" bind:value={selectedEntity.word}>
+        </div>
+        <button>Reset</button>
+        <button on:click={handleExportData}>Export</button>
+
+    </div>
+    
 </div>
 
 <style>
