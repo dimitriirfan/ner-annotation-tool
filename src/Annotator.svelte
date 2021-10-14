@@ -68,7 +68,7 @@
         data = data
     }
     const handleDeleteEntity = (i) => {
-        data.words[i].class = "UNSET"
+        selectedWordArray[i].class = "UNSET"
         data = data
     }
     const handleExportData = () => {
@@ -152,7 +152,7 @@
         {#if ready}
             <p class="sentence leading-10">
                 {#each selectedWordArray as word, i}
-                <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2" class:entity={word.class !== "UNSET"} style="background-color: {entities[word.class].color}" >
+                <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2 font-medium" class:entity={word.class !== "UNSET"} style="background-color: {entities[word.class].color}" >
                     <span on:click={() => handleEntityClick(i)}>{word.word + " "}</span>
                     {#if word.class !== "UNSET"}
                         <span class="text-xs font-normal">
