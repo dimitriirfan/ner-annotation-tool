@@ -98,9 +98,9 @@
 			{/each}
 		</p>
 	</div>
-	<div class="h-36 min-h-full border-2 mb-3 p-3">
+	<div class="wrapper-annotator border-2 mb-3 p-3">
 	{#if ready}
-		<p class="sentence leading-loose">
+		<p class="sentence leading-10">
 			{#each data.words as word, i}
             <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2" class:entity={word.class !== "UNSET"} style="background-color: {entities[word.class].color}" >
 				<span on:click={() => handleEntityClick(i)}>{word.word + " "}</span>
@@ -136,6 +136,9 @@
 </div>
 
 <style>
+    .wrapper-annotator {
+        min-height: 200px;
+    }
 	.sentence {
 		display: inline;
 		gap: 1em;
