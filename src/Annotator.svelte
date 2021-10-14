@@ -1,5 +1,8 @@
 <script>
-    import SavedSentence from './components/SavedSentence.svelte'
+    import SidebarSentence from './components/SidebarSentence.svelte'
+    import Header from './components/Header.svelte'
+
+
     let ready=false
     let input_text = ""
 
@@ -16,7 +19,7 @@
         }
     }
     
-    let selectedIndex=null
+    let selectedWordIndex=null
     let selectedEntity={word: "", class: ""}
     
     let newEntityClass
@@ -50,12 +53,11 @@
         sentenceIdArray.push(currentSentenceId)
         currentSentenceId += 1
         sentenceIdArray=sentenceIdArray
-        console.log(data)
     }
 
     const handleEntityClick = (i) => {
-        selectedEntity = data.words[i]
-        selectedIndex = i
+        selectedEntity = selectedWordArray[i]
+        selectedWordIndex = i
     }
     const handleAddNewEntity = () => {
         entities[newEntityClass] = {
@@ -92,55 +94,56 @@
     const handleResetState = () => {
         showEntityDropdown = false
     }
-    const handleDeleteSentence = (id) => {
-        console.log(id)
-        data.words = data.words.filter((item) => item.sentenceNum !== id)
-        sentenceIdArray = sentenceIdArray.filter((item) => item !== id)
+    const handleDeleteSentence = (e) => {
+        data.words = data.words.filter((item) => item.sentenceNum !== e.detail.id)
+        sentenceIdArray = sentenceIdArray.filter((item) => item !== e.detail.id)
         data = data
-        console.log(data)
     }
+    const handleResetEntities = () => {
+        selectedWordArray = selectedWordArray.map((item) => item.class = "UNSET")
+        data = data
+    }
+    $: console.log(newEntityColor)
 
 </script>
 
 <svelte:window on:click={handleResetState}/>
 
-<div class="flex">
-    <div class="flex w-48 flex-col">
-        <h1 class="mb-7 text-gray-900 font-bold text-2xl">Senteces</h1>
-        <div>
-            {#each sentenceIdArray as i, _ }
-                <div on:click={() => { selectedSentenceId = i }} class="cursor-pointer group flex justify-between py-1 px-3 items-center group-hover:bg-gray-100">
-                    <div>
-                        Sentence {i}
-                    </div>
-                    <div on:click|stopPropagation={() => handleDeleteSentence(i)} class="cursor-pointer w-5 h-5 grid place-content-center text-white group-hover:bg-red-600 rounded">x</div>
-                </div>
-                
-            {/each}
-        </div>
-    </div>
-    <div class="flex-1 flex flex-col">
+
+<Header />
+<div class="flex container mx-auto">
+
+    <SidebarSentence on:delete={(e) => handleDeleteSentence(e)} {sentenceIdArray} bind:selectedSentenceId />
+
+    <div class="p-3 flex-1 flex flex-col">
         <h1 class="mb-7 text-gray-900 font-bold text-2xl">Annotator</h1>
         <h2 class="text-gray-900 font-bold text-xl mb-3">Input Sentence</h2>
         <div>
-            <textarea class="w-full" bind:value={input_text} cols="40" rows="5"></textarea>
+            <textarea class="w-full border-2 p-3" bind:value={input_text} cols="40" rows="5"></textarea>
         </div>
         <button class="self-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={handleStartAnnotation} >Start Annotation</button>
         <br>
-    
-        <div class="mb-3">
-            <label for="">New Entity Class</label>
-            <input type="text" bind:value={newEntityClass}> <br>
-            <label for="">Color</label>
-            <input type="text" bind:value={newEntityColor}>
-            <button on:click={handleAddNewEntity}>Add</button>
-        </div>
-
+        
         <h2 class="text-gray-900 font-bold text-xl mb-3">Entities</h2>
+    
+        <div class="flex gap-3 mb-3 items-end">
+            <div class="flex flex-col">
+                <label for="">Add Entity Tag</label>
+                <input class="p-2 h-10 border-2" type="text" bind:value={newEntityClass}>
+            </div>
+            <div class="flex flex-col">
+                <label for="">Color</label>
+                <input class="p-2 h-10" type="color" bind:value={newEntityColor}>
+            </div>
+            <div>
+                <label for=""></label>
+                <button class="h-10 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={handleAddNewEntity}>Add</button>
+            </div>
+        </div>
         <div class="h-16 border-2 mb-3 p-3">
             <p class="sentence">
                 {#each Object.entries(entities) as [_, entity]}
-                    <span class="word-text px-1 py-2 mx-3" style="color: {entity.color}">{entity.class}</span>
+                    <span class="word-text px-1 py-2 mx-3 font-medium" style="color: {entity.color}">{entity.class}</span>
                 {/each}
             </p>
         </div>
@@ -159,7 +162,7 @@
                             x
                         </div>
                     {/if}
-                    {#if selectedIndex == i && showEntityDropdown}
+                    {#if selectedWordIndex == i && showEntityDropdown}
                         <div  class="annotation-entity-dropdown rounded border-2 bg-white z-10">
                             {#each Object.entries(entities) as [_, entity]}
                                 <div on:click={() => handleSelectEntity(i, entity.class)} class="text-gray-900 px-1 font-normal hover:bg-gray-100 bg-white">{entity.class}</div>
@@ -175,12 +178,16 @@
     
         </div>
         <div class="flex justify-between align-middle">
-            <div class="">
+            <div class="flex flex-col">
                 <label for="">Update Text</label>
-                <input type="text" bind:value={selectedEntity.word}>
+                {#if selectedWordArray[selectedWordIndex]}
+                    <input class="p-2 h-10 border-2" type="text" bind:value={selectedWordArray[selectedWordIndex].word}>
+                {:else}
+                    <input class="p-2 h-10 border-2" disabled type="text" />
+                {/if}
             </div>
-            <div class="flex gap-3">
-                <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Reset</button>
+            <div class="flex gap-3 justify-self-end">
+                <button on:click={handleResetEntities} class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Reset</button>
                 <button on:click={handleExportData} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                     <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
                     <span>Export</span>
