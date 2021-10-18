@@ -7,3 +7,9 @@ https://wordbyword-annotation.netlify.app/
 
 ## Sample 
 ![sample](./sample.PNG "Title")
+
+## Run Locally 
+
+```
+npm run dev
+```
