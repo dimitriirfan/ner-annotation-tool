@@ -7,20 +7,16 @@
     let input_text = ""
 
     let data = {
-        classes: ["UNSET"],
+        entities: {
+            "UNSET" : {
+                class: "UNSET",
+                color: ""
+            }
+        },
         words:[{ sentenceNum: 0, word: "", class: "UNSET" }]
     }
-    let showEntityDropdown = false
-
-    let entities = {
-        "UNSET" : {
-            class: "UNSET",
-            color: ""
-        }
-    }
-    
+    let showEntityDropdown = false    
     let selectedWordIndex=null
-    let selectedEntity={word: "", class: ""}
     
     let newEntityClass
     let newEntityColor
@@ -39,7 +35,7 @@
             tempData=[...data.words]
         }
         data = {
-            classes: ["UNSET"],
+            entities: data.entities,
             words: word_list.map((word) => {
                 return { sentenceNum: currentSentenceId, word: word, class: "UNSET" }
             }),
@@ -57,15 +53,13 @@
     }
 
     const handleEntityClick = (i) => {
-        selectedEntity = selectedWordArray[i]
         selectedWordIndex = i
     }
     const handleAddNewEntity = () => {
-        entities[newEntityClass] = {
+        data.entities[newEntityClass] = {
             class: newEntityClass,
             color: newEntityColor
         }
-        data.classes.push(newEntityClass)
         data = data
     }
     const handleDeleteEntity = (i) => {
@@ -84,6 +78,28 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+    }
+    const handleImportButton = () => {
+        document.getElementById("file-import").click()
+    }
+    const handleImportData = () => {
+        const files = document.getElementById('file-import').files;
+        if (files.length <= 0) {
+            return false;
+        }
+        const fr = new FileReader();
+        fr.onload = function(e) { 
+            const result = JSON.parse(e.target.result);
+            data = result
+            sentenceIdArray = result.words.map((item) => { return item.sentenceNum }).filter((item, i, ar) => ar.indexOf(item) === i);
+            currentSentenceId = sentenceIdArray[0]
+            selectedSentenceId = sentenceIdArray[0]
+            selectedWordArray = data.words.filter((item)=> item.sentenceNum === selectedSentenceId)
+            ready=true            
+        }
+
+
+        fr.readAsText(files.item(0));
     }
     const handleShowEntity = () => {
         showEntityDropdown = !showEntityDropdown 
@@ -105,6 +121,7 @@
         data = data
     }
     $: console.log(newEntityColor)
+    $: console.log(selectedSentenceId)
 
 </script>
 
@@ -115,9 +132,15 @@
 <div class="flex container mx-auto">
 
     <SidebarSentence on:delete={(e) => handleDeleteSentence(e)} {sentenceIdArray} bind:selectedSentenceId />
+    <input on:change={handleImportData} class="hidden" type="file" id="file-import" />
 
     <div class="p-3 flex-1 flex flex-col">
-        <h1 class="mb-7 text-gray-900 font-bold text-2xl">Annotator 🖍</h1>
+        <div class="flex justify-between">
+            <h1 class="mb-7 text-gray-900 font-bold text-2xl">Annotator 🖍</h1>
+            <button on:click={handleImportButton} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                <span>Export</span>
+            </button>
+        </div>
         <h2 class="text-gray-900 font-bold text-xl mb-3">📄 Input Sentence</h2>
         <div>
             <textarea class="w-full border-2 p-3" bind:value={input_text} cols="40" rows="5"></textarea>
@@ -143,7 +166,7 @@
         </div>
         <div class="h-16 border-2 mb-3 p-3">
             <p class="sentence">
-                {#each Object.entries(entities) as [_, entity]}
+                {#each Object.entries(data.entities) as [_, entity]}
                     <span class="word-text px-1 py-2 mx-3 font-medium" style="color: {entity.color}">{entity.class}</span>
                 {/each}
             </p>
@@ -153,7 +176,7 @@
         {#if ready}
             <p class="sentence leading-10">
                 {#each selectedWordArray as word, i}
-                <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2 font-medium" class:entity={word.class !== "UNSET"} style="background-color: {entities[word.class].color}" >
+                <span on:click|stopPropagation={handleShowEntity} class="word-text rounded mx-3 px-1 py-2 font-medium" class:entity={word.class !== "UNSET"} style="background-color: {data.entities[word.class].color}" >
                     <span on:click={() => handleEntityClick(i)}>{word.word + " "}</span>
                     {#if word.class !== "UNSET"}
                         <span class="text-xs font-normal">
@@ -165,7 +188,7 @@
                     {/if}
                     {#if selectedWordIndex == i && showEntityDropdown}
                         <div  class="annotation-entity-dropdown rounded border-2 bg-white z-10">
-                            {#each Object.entries(entities) as [_, entity]}
+                            {#each Object.entries(data.entities) as [_, entity]}
                                 <div on:click={() => handleSelectEntity(i, entity.class)} class="text-gray-900 px-1 font-normal hover:bg-gray-100 bg-white">{entity.class}</div>
                             {/each}
                         </div>
@@ -192,7 +215,7 @@
                 <button on:click={handleExportData} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                     <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
                     <span>Export</span>
-                  </button>
+                </button>
             </div>
         </div>
 
